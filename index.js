@@ -18,8 +18,14 @@ async function main() {
     const volume = Math.sqrt(data.reduce((x, y) => x + y*y, 0) / data.length);
 
     canvas.clearRect(0, 0, 150, 100);
+    canvas.resetTransform();
+
+    canvas.translate(60, 60);
+    canvas.rotate(Math.PI * volume);
+    canvas.translate(-60, -60);
+
     canvas.fillStyle = 'rgb(255, 0 ,0)';
-    canvas.fillRect(10, 25, Math.round(volume * 100), 10);
+    canvas.fillRect(10, 55, 50, 5);
 
     requestAnimationFrame(onFrame);
   }
