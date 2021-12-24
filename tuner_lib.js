@@ -1,6 +1,6 @@
 export const SAMPLES_PER_SEC = 44100;
 export const MAX_PERIOD = Math.round(SAMPLES_PER_SEC / 50);
-export const MIN_PERIOD = Math.round(SAMPLES_PER_SEC / 500);
+export const MIN_PERIOD = Math.round(SAMPLES_PER_SEC / 400);
 export const MIN_SAMPLES = Math.pow(2, Math.ceil(Math.log2(MAX_PERIOD)) + 1);
 
 export function getFrequency(data, corr) {

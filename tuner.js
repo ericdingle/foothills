@@ -1,62 +1,33 @@
 import {getFrequency, MIN_SAMPLES, SAMPLES_PER_SEC} from './tuner_lib.js';
 import {Zeroes} from './zeroes.js';
 
-const FREQ = 261.626;
-const W = 2 * Math.PI * FREQ;
+async function main() {
+  const context = new AudioContext();
+  const analyser = context.createAnalyser();
+  analyser.fftSize = MIN_SAMPLES;
 
-const HEIGHT = 256;
-const WIDTH = 1024;
+  const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+  const source = context.createMediaStreamSource(stream);
+  source.connect(analyser);
 
-function func(t) {
-  return 0.3 * Math.sin(W * t) + 0.4 * Math.sin(2 * W * t) + 0.3 * Math.sin(3 * W * t);
+  const data = new Float32Array(analyser.fftSize);
+
+  function onFrame() {
+    analyser.getFloatTimeDomainData(data);
+
+    const zeroes = new Zeroes(data.length);
+    data.forEach((v, i) => { zeroes.set(i, v >= 0); });
+
+    const corr = zeroes.autoCorrelate();
+    const freq = getFrequency(data, corr);
+
+    document.getElementById('freq').textContent = Math.round(freq);
+
+    requestAnimationFrame(onFrame);
+  }
+  requestAnimationFrame(onFrame);
 }
 
-function getContext(name) {
-  const canvas = document.getElementById(name);
-  canvas.width = WIDTH;
-  canvas.height = HEIGHT;
-
-  const context = canvas.getContext('2d');
-  context.clearRect(0, 0, WIDTH, HEIGHT);
-  return context;
-}
-
-function main() {
-  // Plot the function.
-  let data = new Float32Array(MIN_SAMPLES);
-  data = data.map((v, i) => func(i / SAMPLES_PER_SEC));
-
-  let context = getContext('func');
-  context.beginPath();
-  context.moveTo(0, HEIGHT / 2);
-  for (let i = 0; i < WIDTH; ++i)
-    context.lineTo(i, HEIGHT / 2 - 100 * data[i]);
-  context.stroke();
-
-  // Plot the zeroes.
-  const zeroes = new Zeroes(data.length);
-  data.forEach((v, i) => { zeroes.set(i, v >= 0); });
-
-  context = getContext('zeroes');
-  context.beginPath();
-  context.moveTo(0, HEIGHT / 2);
-  for (let i = 0; i < WIDTH; ++i)
-    context.lineTo(i, HEIGHT / 2 - 100 * zeroes.get(i));
-  context.stroke();
-
-  // Plot the auto correlation.
-  const corr = zeroes.autoCorrelate();
-
-  context = getContext('corr');
-  context.beginPath();
-  context.moveTo(0, HEIGHT / 2);
-  for (let i = 0; i < WIDTH; ++i)
-    context.lineTo(i, HEIGHT / 2 - 0.125 * corr[i]);
-  context.stroke();
-
-  // Get the frequency
-  const freq = getFrequency(data, corr);
-  console.log(freq);
-}
-
-addEventListener('load', main);
+addEventListener('load', () => {
+  document.getElementById('start').addEventListener('click', main);
+});
