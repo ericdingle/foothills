@@ -1,8 +1,12 @@
-import {getFrequency, MIN_SAMPLES, SAMPLES_PER_SEC} from './tuner_lib.js';
+import {getFrequency, MIN_FREQUENCY} from './tuner_lib.js';
 import {Zeroes} from './zeroes.js';
 
 const FREQ = 261.626;
 const W = 2 * Math.PI * FREQ;
+
+const SAMPLE_RATE = 44100;
+const MAX_PERIOD = Math.round(SAMPLE_RATE / MIN_FREQUENCY);
+const MIN_SAMPLES = Math.pow(2, Math.ceil(Math.log2(MAX_PERIOD)) + 1);
 
 const HEIGHT = 256;
 const WIDTH = 1024;
@@ -24,7 +28,7 @@ function getContext(name) {
 function main() {
   // Plot the function.
   let data = new Float32Array(MIN_SAMPLES);
-  data = data.map((v, i) => func(i / SAMPLES_PER_SEC));
+  data = data.map((v, i) => func(i / SAMPLE_RATE));
 
   let context = getContext('func');
   context.beginPath();
@@ -55,7 +59,7 @@ function main() {
   context.stroke();
 
   // Get the frequency
-  const freq = getFrequency(data, corr);
+  const freq = getFrequency(SAMPLE_RATE, data, corr);
   console.log(freq);
 }
 

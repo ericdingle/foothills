@@ -1,18 +1,18 @@
-export const SAMPLES_PER_SEC = 44100;
-export const MAX_PERIOD = Math.round(SAMPLES_PER_SEC / 50);
-export const MIN_PERIOD = Math.round(SAMPLES_PER_SEC / 400);
-export const MIN_SAMPLES = Math.pow(2, Math.ceil(Math.log2(MAX_PERIOD)) + 1);
+export const MIN_FREQUENCY = 50;
+export const MAX_FREQUENCY = 400;
 
-export function getFrequency(data, corr) {
+export function getFrequency(sampleRate, data, corr) {
+  const minPeriod = Math.round(sampleRate / MAX_FREQUENCY);
+
   // Handle harmonics.
   let maxCount = 0;
-  let index = corr.slice(MIN_PERIOD).reduce((p, c, i, a) => {
+  let index = corr.slice(minPeriod).reduce((p, c, i, a) => {
     maxCount = Math.max(maxCount, c);
     return c < a[p] ? i : p;
-  }, 0) + MIN_PERIOD;
+  }, 0) + minPeriod;
 
   const threshold = 0.15 * maxCount;
-  const maxDiv = Math.floor(index / MIN_PERIOD);
+  const maxDiv = Math.floor(index / minPeriod);
   for (let div = maxDiv; div != 1; --div) {
     let harmonic = true;
 
@@ -45,6 +45,6 @@ export function getFrequency(data, corr) {
   const dx2 = -prev / dy;
 
   const samples = (end - start) + (dx2 - dx1);
-  const freq = SAMPLES_PER_SEC / samples;
+  const freq = sampleRate / samples;
   return freq;
 }
