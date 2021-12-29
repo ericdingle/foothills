@@ -20,7 +20,7 @@ async function main(type) {
   source = context.createMediaStreamSource(stream);
   source.connect(analyser);
 
-  const canvas = document.getElementById('tuner').getContext('2d');
+  const canvas = document.getElementById('volume').getContext('2d');
   let a = 100, b = -100;
   function onFrame() {
     let volume;
